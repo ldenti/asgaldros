@@ -48,7 +48,7 @@ rule suppa:
     shell:
         """
         mkdir -p {ODIR}
-        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE,SS
+        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE SS
         """
 
 rule extract_local:
