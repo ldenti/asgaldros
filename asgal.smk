@@ -19,8 +19,6 @@ for line in open(GTF):
         gene = line[-1].split("\"")[1]
         # gene = re.match("gene_id \"([A-Za-z0-9\.]+\|\-)\";", line[-1]).group(1)
         genes[gene] = chrom
-print(genes)
-print(f"{len(genes)} genes")
 
 rule run:
     input:
