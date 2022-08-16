@@ -1,7 +1,7 @@
 # ASGAL-DROS
 
 ```
-create -c bioconda -n asgaldros suppa biopython gffutils pysam samtools gffread shark snakemake-minimal
+conda create -c bioconda -n asgaldros suppa biopython gffutils pysam samtools gffread shark snakemake-minimal cutadapt pandas
 
 wget http://ftp.flybase.net/releases/FB2022_04/dmel_r6.47/fasta/dmel-all-chromosome-r6.47.fasta.gz
 wget http://ftp.flybase.net/releases/FB2022_04/dmel_r6.47/gtf/dmel-all-r6.47.gtf.gz
