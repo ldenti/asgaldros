@@ -39,34 +39,40 @@ rule suppa:
     input:
         GTF
     output:
-        pjoin(ODIR, "_SE_strict.ioe")
+        pjoin(ODIR, "_SE_strict.ioe"),
+        pjoin(ODIR, "_A3_strict.ioe"),
+        pjoin(ODIR, "_A5_strict.ioe")
     params:
         oprefix = pjoin(ODIR) + "/"
     threads: 1
     shell:
         """
         mkdir -p {ODIR}
-        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE
+        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE,SS
         """
 
 rule extract_local:
     input:
         gtf = GTF,
-        ioe = pjoin(ODIR, "_SE_strict.ioe")
+        ioe1 = pjoin(ODIR, "_SE_strict.ioe"),
+        ioe2 = pjoin(ODIR, "_A3_strict.ioe"),
+        ioe3 = pjoin(ODIR, "_A5_strict.ioe"),
     output:
-        gtf = pjoin(ODIR, "_SE_strict.ioe.local.gtf")
+        gtf = pjoin(ODIR, "strict.ioe.local.gtf")
+    params:
+        odir = ODIR
     threads: 1
     shell:
         """
-        python3 extract_subannotations.py {input.gtf} {input.ioe} > {output.gtf}
+        python3 extract_subannotations.py {input.gtf} {params.odir} > {output.gtf}
         """
 
 rule get_local_transcripts:
     input:
         fa = FA,
-        gtf = pjoin(ODIR, "_SE_strict.ioe.local.gtf")
+        gtf = pjoin(ODIR, "strict.ioe.local.gtf")
     output:
-        fa = pjoin(ODIR, "_SE_strict.ioe.local.fa")
+        fa = pjoin(ODIR, "strict.ioe.local.fa")
     threads: 1
     shell:
         """
@@ -75,7 +81,7 @@ rule get_local_transcripts:
 
 rule shark:
     input:
-        fa = pjoin(ODIR, "_SE_strict.ioe.local.fa"),
+        fa = pjoin(ODIR, "strict.ioe.local.fa"),
         fq = FQ + ".trimmed.fq"
     output:
         ssv = pjoin(ODIR, "shark.ssv"),

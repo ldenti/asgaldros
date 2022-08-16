@@ -18,7 +18,6 @@ def main():
         associations[gidx].add(ridx)
 
     for gidx in associations:
-        print(f"Parsing {gidx}..")
         ofile = open(odir + "/" + gidx + ".fq", "w")
         for record in SeqIO.parse(fq_path, "fastq"):
             if record.id in associations[gidx]:

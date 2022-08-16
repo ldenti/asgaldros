@@ -5,7 +5,7 @@ from os.path import join as pjoin
 
 FA = config["fa"]
 ODIR = config["odir"]
-GTF = pjoin(ODIR, "_SE_strict.ioe.local.gtf")
+GTF = pjoin(ODIR, "strict.ioe.local.gtf")
 FQDIR = pjoin(ODIR, "sharked")
 ASGAL_DIR = config["galig"]
 

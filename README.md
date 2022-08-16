@@ -18,5 +18,7 @@ snakemake -s asgal.smk -j 4
 ```
 
 ### TODO
+* [X] ~extend to A3 and A5~
+* [ ] code refactoring
+* [ ] extend to IR and other events from SUPPA2
 * [ ] what if constitutive exons are shorter than 100bp?
-* [ ] extend to A3, A5, IR and other events from SUPPA2
