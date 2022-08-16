@@ -52,8 +52,12 @@ def main():
             w2 = w
         elif (s, e) == I3:
             w3 = w
-    if w1 > MINW and w2 > MINW and w3 > MINW:
-        print(chrom, idx, w1, w2, w3, (w1 + w2) / (w1 + w2 + 2 * w3))
+    PSI = 0
+    if w1 == 0 and w2 == 0 and w3 == 0:
+        PSI = -1
+    else:
+        PSI = ((w1 + w2)/2) / ((w1 + w2)/2 + w3)
+    print(chrom, idx, w1, w2, w3, PSI, sep=",")
 
 
 if __name__ == "__main__":
