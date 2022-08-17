@@ -2,6 +2,7 @@ configfile: "config.yaml"
 
 import re
 from os.path import join as pjoin
+import glob
 
 FA = config["fa"]
 ODIR = config["odir"]
@@ -10,6 +11,11 @@ FQDIR = pjoin(ODIR, "sharked")
 ASGAL_DIR = config["galig"]
 
 genes = {}
+# here we take genes from the sharked set of samples since some gene in the annotation
+# may not have reads (accordingly to shark output)
+for fq in glob.glob(pjoin(FQDIR, "*.fq")):
+    gene = os.path.basename(fq)[:-3]
+    genes[gene] = ""
 for line in open(GTF):
     if line.startswith("#"):
         continue
@@ -17,7 +23,8 @@ for line in open(GTF):
     chrom = line[0]
     if line[2] == "gene":
         gene = line[-1].split("\"")[1]
-        # gene = re.match("gene_id \"([A-Za-z0-9\.]+\|\-)\";", line[-1]).group(1)
+        if gene not in genes:
+            continue
         genes[gene] = chrom
 
 rule run:

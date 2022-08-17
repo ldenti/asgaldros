@@ -38,7 +38,7 @@ def main():
         ]
         _introns = set((exons[i - 1][1], exons[i][0] - 1) for i in range(1, len(exons)))
         introns |= _introns
-    if etype == "ES":
+    if etype == "SE":
         I1 = min(introns, key=lambda x: x[1])
         I2 = max(introns, key=lambda x: x[0])
         I3 = max(introns, key=lambda x: x[1] - x[0])
@@ -58,6 +58,7 @@ def main():
             PSI = -1
         else:
             PSI = ((w1 + w2)/2) / ((w1 + w2)/2 + w3)
+        PSI = round(PSI, 3)
         print(chrom, idx, w1, w2, w3, PSI, sep=",")
     else: # SS
         I1 = min(introns, key=lambda x: x[1] - x[0])
@@ -76,6 +77,7 @@ def main():
             PSI = -1
         else:
             PSI = w1 / (w1 + w2)
+        PSI = round(PSI, 3)
         print(chrom, idx, w1, w2, PSI, sep=",")
 
 
