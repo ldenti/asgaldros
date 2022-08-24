@@ -17,11 +17,16 @@ def main():
             associations[gidx] = set()
         associations[gidx].add(ridx)
 
+    # FIXME this may use too much memory if sharked reads set is huge
+    # e.g., 1 272 662 reads -> 2.3GB
+    reads = {}
+    for record in SeqIO.parse(fq_path, "fastq"):
+        reads[record.id] = record
+
     for gidx in associations:
         ofile = open(odir + "/" + gidx + ".fq", "w")
-        for record in SeqIO.parse(fq_path, "fastq"):
-            if record.id in associations[gidx]:
-                SeqIO.write(record, ofile, "fastq")
+        for idx in associations[gidx]:
+            SeqIO.write(reads[idx], ofile, "fastq")
         ofile.close()
 
 
