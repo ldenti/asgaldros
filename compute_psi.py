@@ -32,11 +32,11 @@ def main():
     for transcript in gtf.features_of_type("transcript"):
         chrom = transcript.chrom
         idx = transcript.attributes["gene_id"][0][:-2]
-        exons = [
+        _exons = [
             (exon.start, exon.end)
             for exon in gtf.children(transcript, featuretype="exon", order_by="start")
         ]
-        _introns = set((exons[i - 1][1], exons[i][0] - 1) for i in range(1, len(exons)))
+        _introns = set((_exons[i - 1][1], _exons[i][0] - 1) for i in range(1, len(_exons)))
         introns |= _introns
     if etype == "SE":
         I1 = min(introns, key=lambda x: x[1])
@@ -60,7 +60,7 @@ def main():
             PSI = ((w1 + w2)/2) / ((w1 + w2)/2 + w3)
         PSI = round(PSI, 3)
         print(chrom, idx, w1, w2, w3, PSI, sep=",")
-    else: # SS
+    elif etype == "A3" or etype == "A5":
         I1 = min(introns, key=lambda x: x[1] - x[0])
         I2 = max(introns, key=lambda x: x[1] - x[0])
         w1, w2 = 0, 0
@@ -79,7 +79,28 @@ def main():
             PSI = w1 / (w1 + w2)
         PSI = round(PSI, 3)
         print(chrom, idx, w1, w2, PSI, sep=",")
+    elif etype == "RI":
+        I1 = list(introns)[0]
+        bam = pysam.AlignmentFile(bam_path, "rb")
+        w1, w2 = 0, 0
+        # Spliced reads
+        introns = bam.find_introns((read for read in bam.fetch()))
+        for (s, e), w in introns.items():
+            if (s, e) == I1:
+                w1 = w
+        # Reads fully aligned to intron
+        for al in bam.fetch(chrom, I1[0], I1[1]):
+            if I1[0] <= al.reference_start and al.reference_end <= I1[1]:
+                w2 += 1
 
+        PSI = 0
+        if w1 == 0 and w2 == 0:
+            PSI = -1
+        else:
+            PSI = w1 / (w1 + w2)
+        PSI = round(PSI, 3)
+
+        print(chrom, idx, w1, w2, PSI, sep=",")
 
 if __name__ == "__main__":
     main()

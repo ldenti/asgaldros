@@ -39,24 +39,26 @@ rule suppa:
     input:
         GTF
     output:
-        pjoin(ODIR, "_SE_strict.ioe"),
-        pjoin(ODIR, "_A3_strict.ioe"),
-        pjoin(ODIR, "_A5_strict.ioe")
+        ioe_se = pjoin(ODIR, "_SE_strict.ioe"),
+        ioe_a3 = pjoin(ODIR, "_A3_strict.ioe"),
+        ioe_a5 = pjoin(ODIR, "_A5_strict.ioe"),
+        ioe_ri = pjoin(ODIR, "_RI_strict.ioe")
     params:
         oprefix = pjoin(ODIR) + "/"
     threads: 1
     shell:
         """
         mkdir -p {ODIR}
-        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE SS
+        suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE SS RI
         """
 
 rule extract_local:
     input:
         gtf = GTF,
-        ioe1 = pjoin(ODIR, "_SE_strict.ioe"),
-        ioe2 = pjoin(ODIR, "_A3_strict.ioe"),
-        ioe3 = pjoin(ODIR, "_A5_strict.ioe"),
+        ioe_se = pjoin(ODIR, "_SE_strict.ioe"),
+        ioe_a3 = pjoin(ODIR, "_A3_strict.ioe"),
+        ioe_a5 = pjoin(ODIR, "_A5_strict.ioe"),
+        ioe_ir = pjoin(ODIR, "_RI_strict.ioe")
     output:
         gtf = pjoin(ODIR, "strict.ioe.local.gtf")
     params:

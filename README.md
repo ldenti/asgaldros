@@ -32,3 +32,4 @@ python3 compute_psi_bam.py [all.ioe] [bam]
 * [ ] code refactoring
 * [ ] extend to IR and other events from SUPPA2
 * [ ] what if constitutive exons are shorter than read length?
+* [ ] improve PSI

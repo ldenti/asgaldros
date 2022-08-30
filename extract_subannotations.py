@@ -229,6 +229,81 @@ def analyze_SS(exons, fpath):
                 )
 
 
+def analyze_IR(fpath):
+    for line in open(fpath):
+        if line.startswith("seqname"):
+            continue
+        idx = line.strip("\n").split("\t")[2]
+        gene, rest = idx.split(";")
+        _etype, chrom, exon1_s, intron, exon2_e, strand = rest.split(":")
+        exon1 = (int(exon1_s), int(intron.split("-")[0]))
+        exon2 = (int(intron.split("-")[1]), int(exon2_e))
+        idx = idx.replace(";", "_")
+        idx = idx.replace(":", "_")
+        assert exon1[1] < exon2[0]
+        print(
+            chrom,
+            ".",
+            "gene",
+            exon1[0],
+            exon2[1],
+            ".",
+            "+",
+            ".",
+            f'gene_id "{idx}_G";',
+            sep="\t",
+        )
+        print(
+            chrom,
+            ".",
+            "transcript",
+            exon1[0],
+            exon2[1],
+            ".",
+            "+",
+            ".",
+            f'gene_id "{idx}_G"; transcript_id "{idx}_T1"',
+            sep="\t",
+        )
+        for i, (s, e) in enumerate([exon1, exon2], 1):
+            print(
+                chrom,
+                ".",
+                "exon",
+                s,
+                e,
+                ".",
+                "+",
+                ".",
+                f'gene_id "{idx}_G"; transcript_id "{idx}_T1"; exon_id "{idx}_E{i}"',
+                sep="\t",
+            )
+        print(
+            chrom,
+            ".",
+            "transcript",
+            exon1[1]+1,
+            exon2[0]-1,
+            ".",
+            "+",
+            ".",
+            f'gene_id "{idx}_G"; transcript_id "{idx}_T2"',
+            sep="\t",
+        )
+        print(
+            chrom,
+            ".",
+            "exon",
+            exon1[1]+1,
+            exon2[0]-1,
+            ".",
+            "+",
+            ".",
+            f'gene_id "{idx}_G"; transcript_id "{idx}_T2"; exon_id "{idx}_E3"',
+            sep="\t",
+        )
+
+
 def main():
     gtf_path = sys.argv[1]
     indir = sys.argv[2]
@@ -251,6 +326,8 @@ def main():
     analyze_SS(exons, os.path.join(indir, "_A3_strict.ioe"))
     print("Analyzing A5..", file=sys.stderr)
     analyze_SS(exons, os.path.join(indir, "_A5_strict.ioe"))
+    print("Analyzing IR..", file=sys.stderr)
+    analyze_IR(os.path.join(indir, "_RI_strict.ioe"))
 
 
 if __name__ == "__main__":
