@@ -17,6 +17,16 @@ snakemake -s preprocessing.smk -j 4
 snakemake -s asgal.smk -j 4
 ```
 
+Compute PSI value from a BAM file
+```
+# run SUPPA2
+suppa.py generateEvents -i [gtf] -o [prefix] -f ioe -e SE SS
+# concatenate SUPPA2 .ioe
+cat [prefix]_*.ioe > [all.ioe]
+# compute PSI from ioe and bam
+python3 compute_psi_bam.py [all.ioe] [bam]
+```
+
 ### TODO
 * [X] ~extend to A3 and A5~
 * [ ] code refactoring
