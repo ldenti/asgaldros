@@ -29,7 +29,9 @@ python3 compute_psi_bam.py [all.ioe] [bam]
 
 ### TODO
 * [X] ~extend to A3 and A5~
-* [ ] code refactoring
-* [ ] extend to IR and other events from SUPPA2
+* [X] ~code refactoring~
+* [X] ~extend to IR and other events from SUPPA2~
+* [X] ~extend to MX~
 * [ ] what if constitutive exons are shorter than read length?
-* [ ] improve PSI
+* [ ] improve PSI (e.g., use exon coverage)
+* [ ] preserve gene strand

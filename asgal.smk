@@ -29,8 +29,7 @@ for line in open(GTF):
 
 rule run:
     input:
-        expand(pjoin(ODIR, "{gene}", "ASGAL", "events.wpsi.csv"),
-                gene = genes.keys())
+        pjoin(ODIR, "events.csv")
 
 rule split_reference:
     input:
@@ -91,4 +90,16 @@ rule compute_psi:
     shell:
         """
         python3 compute_psi.py {input.gtf} {input.bam} > {output.csv}
+        """
+
+rule summarize:
+    input:
+        expand(pjoin(ODIR, "{gene}", "ASGAL", "events.wpsi.csv"),
+                gene = genes.keys())
+    output:
+        pjoin(ODIR, "events.csv")
+    shell:
+        """
+        head -1 {input[0]} > {output}
+        tail -n 1 {input} | grep -v "==" | grep -v "^$" >> {output}
         """
