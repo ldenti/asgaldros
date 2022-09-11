@@ -98,8 +98,9 @@ rule summarize:
                 gene = genes.keys())
     output:
         pjoin(ODIR, "events.csv")
+    params:
+        wdir = ODIR
     shell:
         """
-        head -1 {input[0]} > {output}
-        tail -n 1 {input} | grep -v "==" | grep -v "^$" >> {output}
+        python3 summarize.py {params.wdir} > {output}
         """

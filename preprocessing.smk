@@ -100,7 +100,7 @@ rule shark:
         shark -r {input.fa} -1 {input.fq} -o {output.fq} -t {threads} > {output.ssv}
         """
 
-checkpoint split_sharked:
+rule split_sharked:
     input:
         ssv = pjoin(ODIR, "shark.ssv"),
         fq = pjoin(ODIR, "sharked.fq")
