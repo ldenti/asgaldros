@@ -22,6 +22,7 @@ for line in open(GTF):
 
 rule run:
     input:
+        pjoin(ODIR, "strict.ioe"),
         pjoin(ODIR, "sharked")
 
 rule trim:
@@ -47,12 +48,29 @@ rule suppa:
         ioe_al = pjoin(ODIR, "_AL_strict.ioe"),
         ioe_mx = pjoin(ODIR, "_MX_strict.ioe")
     params:
-        oprefix = pjoin(ODIR) + "/"
+        oprefix = ODIR + "/"
     threads: 1
     shell:
         """
         mkdir -p {ODIR}
         suppa.py generateEvents -i {input} -o {params.oprefix} -f ioe -e SE SS RI FL MX
+        """
+
+rule merge_ioes:
+    input:
+        ioe_se = pjoin(ODIR, "_SE_strict.ioe"),
+        ioe_a3 = pjoin(ODIR, "_A3_strict.ioe"),
+        ioe_a5 = pjoin(ODIR, "_A5_strict.ioe"),
+        ioe_ri = pjoin(ODIR, "_RI_strict.ioe"),
+        ioe_af = pjoin(ODIR, "_AF_strict.ioe"),
+        ioe_al = pjoin(ODIR, "_AL_strict.ioe"),
+        ioe_mx = pjoin(ODIR, "_MX_strict.ioe")
+    output:
+        pjoin(ODIR, "strict.ioe")
+    shell:
+        """
+        head -1 {input.ioe_se} > {output}
+        cat {input} | grep -v "seqname" >> {output}
         """
 
 rule extract_local:

@@ -81,26 +81,53 @@ rule sam2bam:
         samtools index {output}
         """
 
-rule compute_psi:
+rule list_bams:
     input:
-        gtf = pjoin(ODIR, "{gene}", "annotation.gtf"),
-        bam = pjoin(ODIR, "{gene}", "ASGAL", "aligns.bam")
+        expand(pjoin(ODIR, "{gene}", "ASGAL", "aligns.bam"),
+               gene = genes.keys())
     output:
-        csv = pjoin(ODIR, "{gene}", "ASGAL", "events.wpsi.csv")
+        pjoin(ODIR, "bams.list")
+    threads: 1
     shell:
         """
-        python3 compute_psi.py {input.gtf} {input.bam} > {output.csv}
+        ls {input} > {output}
         """
 
-rule summarize:
+rule merge_bams:
     input:
-        expand(pjoin(ODIR, "{gene}", "ASGAL", "events.wpsi.csv"),
-                gene = genes.keys())
+        pjoin(ODIR, "bams.list")
     output:
-        pjoin(ODIR, "events.csv")
-    params:
-        wdir = ODIR
+        pjoin(ODIR, "asgal.merge.bam")
+    threads: 1
     shell:
         """
-        python3 summarize.py {params.wdir} > {output}
+        samtools merge {output} -b {input}
+        samtools index {output}
+        """
+
+rule clean_asgal_bam:
+    input:
+        pjoin(ODIR, "asgal.merge.bam")
+    output:
+        pjoin(ODIR, "asgal.bam")
+    params:
+        pjoin(ODIR, "asgal.tmp.bam")
+    shell:
+        """
+        python3 clean_asgal_bam.py rdup {input} | samtools view -bS | samtools sort > {params}
+        samtools index {params}
+        python3 clean_asgal_bam.py fsec {params} | samtools view -bS | samtools sort > {output}
+        samtools index {output}
+        rm {params} {params}.bai
+        """
+
+rule compute_psi:
+    input:
+        ioe = pjoin(ODIR, "strict.ioe"),
+        bam = pjoin(ODIR, "asgal.bam")
+    output:
+        pjoin(ODIR, "events.csv")
+    shell:
+        """
+        python3 compute_psi.py {input.ioe} {input.bam} > {output}
         """
