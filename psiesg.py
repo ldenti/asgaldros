@@ -133,15 +133,31 @@ def main(args):
             out_fa.close()
 
     logging.info("Splitting event splicing graphs annotation..")
-    events = []
-    for fq in glob.glob(os.path.join(esg_wd, "*.fq")):
-        event = os.path.basename(fq)[:-3]
-        events.append(event)
-        # FIXME: tried to do this with gffutils but I got an error. I should have investigated a bit more..
-        subprocess.call(
-            ["grep", event, esg_gtf_path],
-            stdout=open(os.path.join(esg_wd, f"{event}.gtf"), "w"),
-        )
+    # get events from splitted fqs (some events may not have reads, so we filter them here)
+    events = [
+        os.path.basename(fq)[:-3] for fq in glob.glob(os.path.join(esg_wd, "*.fq"))
+    ]
+    esg_gtf = open_gtf(esg_gtf_path)
+    with console.status("[bold green]Splitting {len(events)} ESGs...") as _:
+        for gene in esg_gtf.features_of_type("gene"):
+            gidx = gene.id
+            if '"' in gene.id:
+                gidx = gidx.split('"')[1]
+            if gidx not in events:
+                continue
+            gene.id = gidx
+            with open(os.path.join(esg_wd, f"{gidx}.gtf"), "w") as ogtf:
+                # FIXME don't know why but gffutils put additional "" around gene_id - and only for gene record
+                gene_str = str(gene).replace('""', '"').replace('";"', '"')
+                print(gene_str, file=ogtf)
+                for transcript in esg_gtf.children(
+                    gene, featuretype="transcript", order_by="start"
+                ):
+                    print(transcript, file=ogtf)
+                    for exon in esg_gtf.children(
+                        transcript, featuretype="exon", order_by="start"
+                    ):
+                        print(exon, file=ogtf)
 
     logging.info("Mapping reads to event splicing graphs..")
     # TODO: move what follows in the asgal.py module vvv
