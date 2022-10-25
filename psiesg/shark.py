@@ -20,8 +20,21 @@ def run(fa, fq1, fq2, threads, out, outfq1, outfq2, log):
         str(threads),
     ]
     if fq2 is None:
-        cmd = ["shark", "-r", fa, "-1", fq1, "--out1", outfq1, "-t", str(threads)]
-    p = subprocess.run(cmd, stdout=open(out, "w"), stderr=open(log, "w"))
+        cmd = [
+            shutil.which("shark"),
+            "-r",
+            fa,
+            "-1",
+            fq1,
+            "--out1",
+            outfq1,
+            "-t",
+            str(threads),
+        ]
+    cmd_str = " ".join(cmd) + f" > {out} 2> {log}"
+    # CHECKME: if I use shell=False, subprocess doesn't wait for content to be written to stdout file
+    p = subprocess.run(cmd_str, shell=True)
+    # p = subprocess.run(cmd_str, stdout=open(out, "w"), stderr=open(log, "w"))
     return p.returncode
 
 
