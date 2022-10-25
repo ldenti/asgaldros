@@ -22,27 +22,26 @@ def run_suppa(GTF, WD, events):
     return p.returncode, log_path
 
 
-def build_esg(exons, suppa2_wd, esg_gtf_path):
+def build_esg(exons, suppa2_wd, esg_gtf_path, fr):
     esg_gtf = open(esg_gtf_path, "w")
     events = ["SE", "A3", "A5", "RI", "MX", "AF", "AL"]
     with console.status("[bold green]Building Event Splicing Graphs...") as _:
         for event in events:
-            analyze(exons, suppa2_wd, esg_gtf, event)
-            progress.advance(task_id)
+            analyze(exons, suppa2_wd, esg_gtf, event, fr)
     esg_gtf.close()
 
 
-def analyze(exons, suppa2_wd, esg_gtf, event):
+def analyze(exons, suppa2_wd, esg_gtf, event, fr):
     if event == "SE":
-        analyze_SE(exons, os.path.join(suppa2_wd, f"_SE_strict.ioe"), esg_gtf)
+        analyze_SE(exons, os.path.join(suppa2_wd, f"_SE_strict.ioe"), esg_gtf, fr)
     elif event == "RI":
-        analyze_RI(os.path.join(suppa2_wd, "_RI_strict.ioe"), esg_gtf)
+        analyze_RI(os.path.join(suppa2_wd, "_RI_strict.ioe"), esg_gtf, fr)
     elif event == "MX":
-        analyze_MX(exons, os.path.join(suppa2_wd, "_MX_strict.ioe"), esg_gtf)
+        analyze_MX(exons, os.path.join(suppa2_wd, "_MX_strict.ioe"), esg_gtf, fr)
     elif event in ["A3", "A5"]:
-        analyze_SS(exons, os.path.join(suppa2_wd, f"_{event}_strict.ioe"), esg_gtf)
+        analyze_SS(exons, os.path.join(suppa2_wd, f"_{event}_strict.ioe"), esg_gtf, fr)
     elif event in ["AF", "AL"]:
-        analyze_FL(exons, os.path.join(suppa2_wd, f"_{event}_strict.ioe"), esg_gtf)
+        analyze_FL(exons, os.path.join(suppa2_wd, f"_{event}_strict.ioe"), esg_gtf, fr)
 
 
 def write_gene(chrom, idx, begin, end, Ts, ogtf):
@@ -55,7 +54,7 @@ def write_gene(chrom, idx, begin, end, Ts, ogtf):
         ".",
         "+",
         ".",
-        f'gene_id "{idx}_G";',
+        f'gene_id "{idx}_G"',
         sep="\t",
         file=ogtf,
     )
@@ -89,7 +88,7 @@ def write_gene(chrom, idx, begin, end, Ts, ogtf):
             )
 
 
-def analyze_SE(exons, fpath, ogtf):
+def analyze_SE(exons, fpath, ogtf, fr):
     if not os.path.exists(fpath):
         return
     for line in open(fpath):
@@ -114,13 +113,18 @@ def analyze_SE(exons, fpath, ogtf):
             elif start == post[0]:
                 if end > post[1]:
                     post = (start, end)
+
+        # CHECKME: do we want this?
+        pre = (max(pre[0], pre[1] - fr), pre[1])
+        post = (post[0], min(post[1], post[0] + fr))
+
         begin = pre[0]
         end = post[1]
         Ts = {1: [(1, pre), (2, mid), (3, post)], 2: [(1, pre), (3, post)]}
         write_gene(chrom, idx, begin, end, Ts, ogtf)
 
 
-def analyze_SS(exons, fpath, ogtf):
+def analyze_SS(exons, fpath, ogtf, fr):
     if not os.path.exists(fpath):
         return
     for line in open(fpath):
@@ -171,18 +175,25 @@ def analyze_SS(exons, fpath, ogtf):
         Ts = {}
         begin, end = 0, 0
         if mode:
+            # CHECKME: do we want this?
+            alt1 = (max(alt1[0], alt1[1] - fr), alt1[1])
+            alt2 = (max(alt2[0], alt2[1] - fr), alt2[1])
+            const = (const[0], min(const[1], const[0] + fr))
             begin = min(alt1[0], alt2[0])
             end = const[1]
             Ts = {1: [(1, alt1), (2, const)], 2: [(3, alt2), (2, const)]}
         else:
+            # CHECKME: do we want this?
+            const = (max(const[0], const[1] - fr), const[1])
+            alt1 = (alt1[0], min(alt1[1], alt1[0] + fr))
+            alt2 = (alt2[0], min(alt2[1], alt2[0] + fr))
             begin = const[0]
             end = max(alt1[1], alt2[1])
             Ts = {1: [(1, const), (2, alt1)], 2: [(1, const), (3, alt2)]}
-
         write_gene(chrom, idx, begin, end, Ts, ogtf)
 
 
-def analyze_RI(fpath, ogtf):
+def analyze_RI(fpath, ogtf, fr=150):
     if not os.path.exists(fpath):
         return
     for line in open(fpath):
@@ -195,13 +206,18 @@ def analyze_RI(fpath, ogtf):
         exon2 = (int(intron.split("-")[1]), int(exon2_e))
         idx = idx.replace(";", "_")
         idx = idx.replace(":", "_")
+
+        # CHECKME: do we want this?
+        exon1 = (max(exon1[0], exon1[1] - fr), exon1[1])
+        exon2 = (exon2[0], min(exon2[1], exon2[0] + fr))
+
         begin = exon1[0]
         end = exon2[1]
         Ts = {1: [(1, exon1), (2, exon2)], 2: [(3, (exon1[1] + 1, exon2[0] - 1))]}
         write_gene(chrom, idx, begin, end, Ts, ogtf)
 
 
-def analyze_FL(exons, fpath, ogtf):
+def analyze_FL(exons, fpath, ogtf, fr):
     if not os.path.exists(fpath):
         return
     for line in open(fpath):
@@ -246,18 +262,25 @@ def analyze_FL(exons, fpath, ogtf):
         Ts = {}
         begin, end = 0, 0
         if mode:
+            # CHECKME: do we want this?
+            exon1 = (max(exon1[0], exon1[1] - fr), exon1[1])
+            exon2 = (max(exon2[0], exon2[1] - fr), exon2[1])
+            const = (const[0], min(const[1], const[0] + fr))
             begin = exon1[0]
             end = const[1]
             Ts = {1: [(1, exon1), (2, const)], 2: [(3, exon2), (2, const)]}
         else:
+            # CHECKME: do we want this?
+            const = (max(const[0], const[1] - fr), const[1])
+            exon1 = (exon1[0], min(exon1[1], exon1[0] + fr))
+            exon2 = (exon2[0], min(exon2[1], exon2[0] + fr))
             begin = const[0]
             end = exon2[1]
             Ts = {1: [(1, const), (2, exon1)], 2: [(1, const), (3, exon2)]}
-
         write_gene(chrom, idx, begin, end, Ts, ogtf)
 
 
-def analyze_MX(exons, fpath, ogtf):
+def analyze_MX(exons, fpath, ogtf, fr):
     if not os.path.exists(fpath):
         return
     for line in open(fpath):
@@ -286,6 +309,11 @@ def analyze_MX(exons, fpath, ogtf):
                     const2 = (start, end)
         assert const1[0] != float("inf")
         assert const2[1] != -1
+
+        # CHECKME: do we want this?
+        const1 = (max(const1[0], const1[1] - fr), const1[1])
+        const2 = (const2[0], min(const2[1], const2[0] + fr))
+
         begin = const1[0]
         end = const2[1]
         Ts = {

@@ -50,6 +50,14 @@ def parse_args():
         help="Path to chromosome folder (default: None)",
     )
     parser.add_argument(
+        "-f",
+        "--fr",
+        dest="fr",
+        default=150,
+        type=int,
+        help="Flanking region size around splice sites (default: 150)",
+    )
+    parser.add_argument(
         "-l",
         dest="l",
         default=10,
