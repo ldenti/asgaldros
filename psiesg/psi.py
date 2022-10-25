@@ -1,15 +1,14 @@
+import sys
 import argparse
 import pysam
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Compute PSI from .bam file")
-    parser.add_argument("IOE", type=str, help="Path to SUPPA2 .ioe file")
-    parser.add_argument("BAM", type=str, help="Path to .bam alignments")
-    args = parser.parse_args()
+def psi(bam_path, ioe_path, out_path):
+    bam = pysam.AlignmentFile(bam_path, "rb")
 
-    bam = pysam.AlignmentFile(args.BAM, "rb")
-
+    out = sys.stdout
+    if out_path != "-":
+        out = open(out_path, "w")
     print(
         "SuppaID",
         "Gene",
@@ -26,8 +25,9 @@ def main():
         "PSI",
         "OtherIntrons",
         sep=",",
+        file=out,
     )
-    for line in open(args.IOE):
+    for line in open(ioe_path):
         if line.startswith("seqname"):
             continue
         idx = line.strip("\n").split("\t")[2]
@@ -164,8 +164,20 @@ def main():
             PSI if PSI != -1 else "NaN",
             "/".join(f"{s}-{e}:{w}" for (s, e), w in new_introns.items()),
             sep=",",
+            file=out,
         )
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Compute PSI from .bam file")
+    parser.add_argument("IOE", type=str, help="Path to SUPPA2 .ioe file(s)")
+    parser.add_argument("BAM", type=str, help="Path to .bam alignments")
+    parser.add_argument(
+        "-o",
+        dest="out",
+        type=str,
+        default="-",
+        help="Path to output .psi (default: -, i.e., stdout)",
+    )
+    args = parser.parse_args()
+    psi(args.bam, args.ioe, args.out)

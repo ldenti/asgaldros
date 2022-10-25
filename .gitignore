@@ -1,3 +1,4 @@
 .vscode
 .snakemake
 *~
+__pycache__
