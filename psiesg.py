@@ -17,10 +17,9 @@ from rich.progress import (
 )
 
 
-from psiesg.cli import parse_args
 from psiesg.gtf import open_gtf, extract_exons, run_gffread
 from psiesg.events import run_suppa, build_esg
-from psiesg import shark, asgal, psi
+from psiesg import cli, shark, asgal, psi
 
 FORMAT = "[%(asctime)s] %(message)s"
 logging.basicConfig(stream=sys.stderr, format=FORMAT, level=logging.INFO)
@@ -133,6 +132,7 @@ def main(args):
         )
 
     logging.info("Mapping reads to event splicing graphs..")
+    # TODO: move what follows in the asgal.py module vvv
     spliceawarealigner = (
         "SpliceAwareAligner"
         if args.galig == "."
@@ -173,7 +173,7 @@ def main(args):
     bigbam_2 = os.path.join(args.wd, "asgal.merged.nodups.bam")
     bigbam_final_unsrt = os.path.join(args.wd, "asgal.unsorted.bam")
     bigbam_final = os.path.join(args.wd, "asgal.bam")
-
+    # ^^^
     asgal.remove_duplicates(bigbam_1, bigbam_2)
     pysam.index(bigbam_2)
     asgal.flag_secondary(bigbam_2, bigbam_final_unsrt)
@@ -191,4 +191,4 @@ if __name__ == "__main__":
     if "--version" in sys.argv:
         print(f"PSI-esg v{VERSION}")
         sys.exit(0)
-    main(parse_args())
+    main(cli.parse_args())

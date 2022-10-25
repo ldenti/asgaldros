@@ -18,8 +18,16 @@ def parse_args():
     parser.add_argument(
         "FQs",
         type=str,
-        help="Path to FASTQ RNA-Seq sample(s)",
+        help="Path to FASTQ RNA-Seq sample",
     )
+    parser.add_argument(
+        "--galig",
+        dest="galig",
+        required=True,
+        type=str,
+        help="Path to galig folder (REQUIRED)",
+    )
+
     parser.add_argument(
         "-e",
         "--events",
@@ -27,13 +35,6 @@ def parse_args():
         default="SE,SS,RI,MX,FL",
         type=str,
         help="Comma separated list of events (default: SE,SS,RI,MX,FL)",
-    )
-    parser.add_argument(
-        "--galig",
-        dest="galig",
-        default=".",
-        type=str,
-        help="Path to galig folder (default: .)",
     )
     parser.add_argument(
         "--chroms",
