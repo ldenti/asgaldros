@@ -2,3 +2,8 @@
 .snakemake
 *~
 __pycache__
+*.fa
+*.fa.fai
+*.fq
+*.gtf
+*.db
