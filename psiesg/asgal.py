@@ -92,6 +92,7 @@ def run(chrom_dir, esg_wd, event, spliceawarealigner, formatsam, l):
         "-o",
         prefix + ".mem",
     ]
+    asgal1_cmd_str = " ".join(asgal1_cmd) + " &> " + prefix + ".mem.log"
     asgal2_cmd = formatsam.split(" ") + [
         "-m",
         prefix + ".mem",
@@ -102,13 +103,16 @@ def run(chrom_dir, esg_wd, event, spliceawarealigner, formatsam, l):
         "-o",
         prefix + ".sam",
     ]
+    asgal2_cmd_str = " ".join(asgal2_cmd) + " &> " + prefix + ".sam.log"
     subprocess.run(
         asgal1_cmd,
-        stderr=open(prefix + ".mem.log", "w"),
+        stdout=open(prefix + ".mem.log", "w"),
+        stderr=subprocess.STDOUT,
     )
     subprocess.run(
         asgal2_cmd,
-        stderr=open(prefix + ".sam.log", "w"),
+        stdout=open(prefix + ".mem.log", "w"),
+        stderr=subprocess.STDOUT,
     )
     view_p = subprocess.run(
         ["samtools", "view", "-bS", f"{prefix}.sam"],
@@ -119,9 +123,5 @@ def run(chrom_dir, esg_wd, event, spliceawarealigner, formatsam, l):
     subprocess.run(["samtools", "index", f"{prefix}.bam"])
 
     with open(prefix + ".cmd.log", "w") as cmdlog:
-        cmdlog.write(" ".join(asgal1_cmd) + "\n")
-        cmdlog.write(" ".join(asgal2_cmd) + "\n")
-
-
-def starrun(args):
-    run(*args)
+        cmdlog.write(asgal1_cmd_str + "\n")
+        cmdlog.write(asgal2_cmd_str + "\n")

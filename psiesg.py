@@ -8,6 +8,8 @@ import logging
 from Bio import SeqIO
 import pysam
 
+from rich.console import Console
+from rich.logging import RichHandler
 from rich.progress import (
     Progress,
     SpinnerColumn,
@@ -16,15 +18,30 @@ from rich.progress import (
     TaskProgressColumn,
 )
 
-
 from psiesg.gtf import open_gtf, extract_exons, run_gffread
 from psiesg.events import run_suppa, build_esg
 from psiesg import cli, shark, asgal, psi
 
-FORMAT = "[%(asctime)s] %(message)s"
-logging.basicConfig(stream=sys.stderr, format=FORMAT, level=logging.INFO)
+console = Console(stderr=True)
 
-VERSION = "0.0.1"
+logging.basicConfig(
+    format="%(message)s",
+    level=logging.INFO,
+    datefmt="[%x %X]",
+    handlers=[RichHandler(console=console)],
+)
+
+
+def main_build(args):
+    pass
+
+
+def main_reads(args):
+    pass
+
+
+def main_bam(args):
+    pass
 
 
 def main(args):
@@ -32,7 +49,7 @@ def main(args):
         logging.getLogger().setLevel(logging.DEBUG)
     args.wd = os.path.join(os.getcwd(), args.wd)
 
-    print("")
+    logging.info("\nCMD: " + " ".join(sys.argv) + "\n")
     try:
         os.makedirs(args.wd)
     except FileExistsError:
@@ -64,17 +81,15 @@ def main(args):
                 print_header = False
                 for line in inioe:
                     outioe.write(line)
-    logging.info("SUPPA2 ran succesfully.")
 
-    logging.info("Building event splicing graphs..")
-    logging.debug("Opening input annotation..")
+    logging.info("Opening input annotation..")
     gtf = open_gtf(args.GTF)
-    logging.debug("Extracting exons from input GTF..")
+    logging.info("Extracting exons from input GTF..")
     exons = extract_exons(gtf)
-    logging.debug("Building..")
     esg_gtf_path = os.path.join(args.wd, "esgraphs.gtf")
-    build_esg(exons, suppa2_wd, esg_gtf_path)
-    logging.debug("Extracting local isoforms..")
+    build_esg(exons, suppa2_wd, esg_gtf_path, args.fr)
+
+    logging.info("Extracting local isoforms..")
     esg_fa_path = os.path.join(args.wd, "esgraphs.fa")
     gffread_log_path = os.path.join(args.wd, "gffread.log")
     retcode = run_gffread(args.FA, esg_gtf_path, esg_fa_path, gffread_log_path)
@@ -83,7 +98,6 @@ def main(args):
         logging.critical(f"See {gffread_log_path} for more details.")
         logging.critical("Halting..\n")
         sys.exit(1)
-    logging.info("Event splicing graphs built correctly.")
 
     logging.info("Filtering input RNA-Seq sample..")
     shark_wd = os.path.join(args.wd, "shark")
@@ -94,7 +108,6 @@ def main(args):
     if FQ2 is not None:
         sharked_2 = os.path.join(shark_wd, "sample_2.fq")
     shark_log = os.path.join(args.wd, "shark.log")
-
     retcode = shark.run(
         esg_fa_path, FQ1, FQ2, args.threads, shark_ssv, sharked_1, sharked_2, shark_log
     )
@@ -108,7 +121,6 @@ def main(args):
     esg_wd = os.path.join(args.wd, "esg")
     os.makedirs(esg_wd, exist_ok=True)
     shark.split(shark_ssv, sharked_1, sharked_2, esg_wd)
-    logging.info("Sample sharked succesfully")
 
     chrom_dir = args.chroms
     if chrom_dir is None:
@@ -147,18 +159,9 @@ def main(args):
         (chrom_dir, esg_wd, event, spliceawarealigner, formatsam, args.l)
         for event in events
     ]
-    with Progress(
-        SpinnerColumn(),
-        TextColumn(
-            f"[bold blue]Mapping against {len(events)} events..", justify="right"
-        ),
-        BarColumn(),
-        TaskProgressColumn(),
-    ) as progress:
-        task_id = progress.add_task("Working...", total=len(events))
+    with console.status(f"[bold green]Mapping against {len(events)} ESGs...") as _:
         with mp.Pool(processes=args.threads) as pool:
-            for result in pool.imap_unordered(asgal.starrun, asgal_args, chunksize=1):
-                progress.advance(task_id)
+            pool.starmap(asgal.run, asgal_args, chunksize=1000)
 
     logging.info("Merging BAMs..")
     bam_list = os.path.join(args.wd, "bams.list")
@@ -188,7 +191,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    if "--version" in sys.argv:
-        print(f"PSI-esg v{VERSION}")
-        sys.exit(0)
     main(cli.parse_args())

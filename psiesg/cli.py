@@ -1,9 +1,15 @@
-import argparse
+import sys, os, argparse
+
+NAME = "PSI-esg"
+VERSION = "0.0.1"
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="PSI-esg: PSI by Event Splicing Graphs weighting"
+    )
+    defgalig = os.path.join(
+        os.getcwd(), os.path.dirname(argparse._sys.argv[0]), "galig"
     )
     parser.add_argument(
         "FA",
@@ -23,9 +29,9 @@ def parse_args():
     parser.add_argument(
         "--galig",
         dest="galig",
-        required=True,
+        default=defgalig,
         type=str,
-        help="Path to galig folder (REQUIRED)",
+        help=f"Path to galig folder (default: {defgalig})",
     )
 
     parser.add_argument(
@@ -67,11 +73,7 @@ def parse_args():
         help="Verbose mode",
     )
     parser.add_argument(
-        "--version",
-        dest="version",
-        action="store_true",
-        default=False,
-        help="Print version",
+        "--version", action="version", version=f"{NAME} {VERSION}", help="Print version"
     )
     parser.add_argument(
         "--wd",

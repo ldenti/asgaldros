@@ -1,12 +1,8 @@
 import os
 import subprocess
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-)
+from rich.console import Console
+
+console = Console(stderr=True)
 
 
 def run_suppa(GTF, WD, events):
@@ -29,13 +25,7 @@ def run_suppa(GTF, WD, events):
 def build_esg(exons, suppa2_wd, esg_gtf_path):
     esg_gtf = open(esg_gtf_path, "w")
     events = ["SE", "A3", "A5", "RI", "MX", "AF", "AL"]
-    with Progress(
-        SpinnerColumn(),
-        TextColumn(f"[bold blue]Building ESG..", justify="right"),
-        BarColumn(),
-        TaskProgressColumn(),
-    ) as progress:
-        task_id = progress.add_task("Working...", total=len(events))
+    with console.status("[bold green]Building Event Splicing Graphs...") as _:
         for event in events:
             analyze(exons, suppa2_wd, esg_gtf, event)
             progress.advance(task_id)
