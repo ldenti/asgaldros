@@ -1,0 +1,3 @@
+[submodule "galig"]
+	path = galig
+	url = https://github.com/algolab/galig.git
