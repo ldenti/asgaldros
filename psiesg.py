@@ -138,7 +138,7 @@ def main(args):
         os.path.basename(fq)[:-3] for fq in glob.glob(os.path.join(esg_wd, "*.fq"))
     ]
     esg_gtf = open_gtf(esg_gtf_path)
-    with console.status("[bold green]Splitting {len(events)} ESGs...") as _:
+    with console.status(f"[bold green]Splitting {len(events)} ESGs...") as _:
         for gene in esg_gtf.features_of_type("gene"):
             gidx = gene.id
             if '"' in gene.id:

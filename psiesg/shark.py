@@ -21,7 +21,7 @@ def run(fa, fq1, fq2, threads, out, outfq1, outfq2, log):
     ]
     if fq2 is None:
         cmd = [
-            shutil.which("shark"),
+            "shark",
             "-r",
             fa,
             "-1",
