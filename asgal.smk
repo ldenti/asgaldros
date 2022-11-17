@@ -93,6 +93,18 @@ rule list_bams:
         ls {input} > {output}
         """
 
+# rule merge_bams:
+#     input:
+#         pjoin(ODIR, "bams.list")
+#     output:
+#         pjoin(ODIR, "asgal.merge.bam")
+#     threads: 1
+#     shell:
+#         """
+#         samtools merge {output} -b {input}
+#         samtools index {output}
+#        """
+
 rule merge_bams:
     input:
         pjoin(ODIR, "bams.list")
@@ -101,10 +113,9 @@ rule merge_bams:
     threads: 1
     shell:
         """
-        samtools merge {output} -b {input}
+        python3 scripts/samtools_merge.py -i {input} -o {output}
         samtools index {output}
         """
-
 rule clean_asgal_bam:
     input:
         pjoin(ODIR, "asgal.merge.bam")
