@@ -147,7 +147,7 @@ def main():
             else:
                 PSI = (w1 + w2) / (w1 + w2 + w3 + w4)
         PSI = round(PSI, 3)
-
+        new_introns_sorted = dict(sorted(new_introns.items(), key=lambda x: f"{x[0][0]}-{x[0][1]}:{x[1]}"))
         print(
             idx,
             gene,
@@ -162,7 +162,7 @@ def main():
             w3,
             w4,
             PSI if PSI != -1 else "NaN",
-            "/".join(f"{s}-{e}:{w}" for (s, e), w in new_introns.items()),
+            "/".join(f"{s}-{e}:{w}" for (s, e), w in new_introns_sorted.items()),
             sep=",",
         )
 
