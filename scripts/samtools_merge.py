@@ -10,9 +10,10 @@ def chunker_list(l, n):
         yield l[i:i + n]
 
 def main(argv):
+    print("script")
     inputfile = ''
     outputfile = ''
-    n_files = 1023
+    n_files = 1000
     try:
         opts, args = getopt.getopt(argv, "hi:o:",
                                    ["ifile=", "ofile="])
