@@ -10,7 +10,7 @@ def chunker_list(l, n):
         yield l[i:i + n]
 
 def main(argv):
-    print("script")
+    
     inputfile = ''
     outputfile = ''
     n_files = 1000
