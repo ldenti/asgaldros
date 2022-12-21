@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - asgal
+  - samtools
+  - pysam
+  - biopython
+  - pandas
