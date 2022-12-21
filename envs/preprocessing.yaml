@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - cutadapt
+  - suppa
+  - biopython
+  - gffutils
+  - gffread
+  - shark
