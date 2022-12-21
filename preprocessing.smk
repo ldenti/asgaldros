@@ -8,7 +8,6 @@ GTF = config["gtf"]
 FQ = config["fq"]
 ODIR = config["odir"]
 THREADS = config["threads"]
-ASGAL_DIR = config["galig"]
 
 genes = {}
 for line in open(GTF):
@@ -30,6 +29,8 @@ rule trim:
         FQ
     output:
         FQ + ".trimmed.fq"
+    conda:
+        "envs/preprocessing.yaml"
     threads: THREADS
     shell:
         """
@@ -49,6 +50,8 @@ rule suppa:
         ioe_mx = pjoin(ODIR, "_MX_strict.ioe")
     params:
         oprefix = ODIR + "/"
+    conda:
+        "envs/preprocessing.yaml"
     threads: 1
     shell:
         """
@@ -87,6 +90,8 @@ rule extract_local:
         gtf = pjoin(ODIR, "strict.ioe.local.gtf")
     params:
         odir = ODIR
+    conda:
+        "envs/preprocessing.yaml"
     threads: 1
     shell:
         """
@@ -99,6 +104,8 @@ rule get_local_transcripts:
         gtf = pjoin(ODIR, "strict.ioe.local.gtf")
     output:
         fa = pjoin(ODIR, "strict.ioe.local.fa")
+    conda:
+        "envs/preprocessing.yaml"
     threads: 1
     shell:
         """
@@ -112,6 +119,8 @@ rule shark:
     output:
         ssv = pjoin(ODIR, "shark.ssv"),
         fq = pjoin(ODIR, "sharked.fq")
+    conda:
+        "envs/preprocessing.yaml"
     threads: THREADS
     shell:
         """
@@ -124,6 +133,8 @@ rule split_sharked:
         fq = pjoin(ODIR, "sharked.fq")
     output:
         directory(pjoin(ODIR, "sharked"))
+    conda:
+        "envs/preprocessing.yaml"
     threads: 1
     shell:
         """

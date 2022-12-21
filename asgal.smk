@@ -8,7 +8,6 @@ FA = config["fa"]
 ODIR = config["odir"]
 GTF = pjoin(ODIR, "strict.ioe.local.gtf")
 FQDIR = pjoin(ODIR, "sharked")
-ASGAL_DIR = config["galig"]
 
 genes = {}
 # here we take genes from the sharked set of samples since some gene in the annotation
@@ -36,6 +35,8 @@ rule split_reference:
         fa = FA
     output:
         fa = pjoin(ODIR, "chroms", "{chrom}.fa")
+    conda:
+        "envs/asgal.yaml"
     threads: 1
     shell:
         """
@@ -62,11 +63,13 @@ rule asgal:
         sam = pjoin(ODIR, "{gene}", "ASGAL", "aligns.sam")
     params:
         mem = pjoin(ODIR, "{gene}", "ASGAL", "aligns.mem"),
+    conda:
+        "envs/asgal.yaml"
     threads: 1
     shell:
         """
-        {ASGAL_DIR}/bin/SpliceAwareAligner -g {input.fa} -a {input.gtf} -s {input.fq} -o {params.mem} -l 7
-        python3 {ASGAL_DIR}/scripts/formatSAM.py -m {params.mem} -g {input.fa} -a {input.gtf} -o {output.sam}
+        SpliceAwareAligner -g {input.fa} -a {input.gtf} -s {input.fq} -o {params.mem} -l 7
+        $CONDA_PREFIX/bin/asgal_formatSAM.py -m {params.mem} -g {input.fa} -a {input.gtf} -o {output.sam}
         """
 
 rule sam2bam:
@@ -84,26 +87,44 @@ rule sam2bam:
 rule list_bams:
     input:
         expand(pjoin(ODIR, "{gene}", "ASGAL", "aligns.bam"),
-               gene = genes.keys())
+                gene = genes.keys())
     output:
         pjoin(ODIR, "bams.list")
     threads: 1
-    shell:
-        """
-        ls {input} > {output}
-        """
+    run:
+        with open(output[0], "w") as f:
+            f.writelines([f"{x}\n" for x in input])
 
 rule merge_bams:
     input:
         pjoin(ODIR, "bams.list")
     output:
         pjoin(ODIR, "asgal.merge.bam")
+    conda:
+        "envs/asgal.yaml"
     threads: 1
     shell:
         """
-        samtools merge {output} -b {input}
+        {{
+            # First  merge headers without PG and no repetition of SQ
+            cat {input} | {{
+                while read bam ; do
+                    samtools view -H "$bam"
+                done
+            }} | grep -v "^@PG" | sort | uniq
+            # next merge actual content (without header)
+            cat {input} | {{
+                while read bam; do
+                    samtools view "$bam"
+                done
+            }}
+        }} \
+            | samtools view -ubS --no-PG - \
+            | samtools sort - --no-PG -o {output}
+        samtools sort {output} -o {output}
         samtools index {output}
         """
+
 
 rule clean_asgal_bam:
     input:
@@ -112,6 +133,8 @@ rule clean_asgal_bam:
         pjoin(ODIR, "asgal.bam")
     params:
         pjoin(ODIR, "asgal.tmp.bam")
+    conda:
+        "envs/asgal.yaml"
     shell:
         """
         python3 clean_asgal_bam.py rdup {input} | samtools view -bS | samtools sort > {params}
@@ -127,6 +150,8 @@ rule compute_psi:
         bam = pjoin(ODIR, "asgal.bam")
     output:
         pjoin(ODIR, "events.csv")
+    conda:
+        "envs/asgal.yaml"
     shell:
         """
         python3 compute_psi.py {input.ioe} {input.bam} > {output}

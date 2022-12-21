@@ -1,6 +1,5 @@
-fa: /home/luca/data/asgal-dros/dmel-all-chromosome-r6.47.chroms.fasta
-gtf: /home/luca/data/asgal-dros/sex-genes.gtf
-fq: /home/luca/data/asgal-dros/A2_OCP_2_R1.cutadapt.fastq.gz
-odir: /home/luca/data/asgal-dros/A2-out
-threads: 4
-galig: /home/luca/code/galig
+fa: ../data/dmel-all-chromosome-r6.47.chroms.fasta
+gtf: ../data/sex-genes.gtf
+fq: ../data/A2_OCP_2_R1.cutadapt.fastq.gz
+odir: A2-out
+threads: 16
